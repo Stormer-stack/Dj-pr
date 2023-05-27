@@ -1,0 +1,35 @@
+version: "3.9"
+services:
+  db:
+  
+    image: postgres:13.3
+    privileged: true
+    restart: always
+    environment:
+      POSTGRES_DB: "Portal"
+      POSTGRES_USER: "Portal"
+      POSTGRES_PASSWORD: "Qwerty123"
+    ports:
+      - "5432:5432"
+
+  backend:
+    build:
+      context: .
+    ports:
+      - 8000:8000
+    command: bash -c "
+      ./wait-for-postgres.sh postgres 
+      && python manage.py makemigrations
+      && python manage.py migrate
+      && python manage.py runserver 0.0.0.0:8000
+      "
+    depends_on:
+      - db   
+
+  adminer:
+    image: adminer:4.7.8-standalone
+    restart: always
+    ports:
+    - 8080:8080
+    depends_on:
+    - db      
